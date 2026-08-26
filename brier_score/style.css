@@ -628,3 +628,60 @@ h1, h2, h3, .number-font {
 .fill-blind { background-color: #00FF00; box-shadow: 0 0 10px #00FF00; }
 .fill-conservative { background-color: var(--neon-orange); box-shadow: 0 0 10px var(--neon-orange); }
 .fill-perfect { background-color: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); }
+
+/* --- Mobile Responsive Rules for Quiz Overlay --- */
+@media (max-width: 768px) {
+  #quiz-overlay {
+    padding: 1rem;
+    box-sizing: border-box;
+  }
+  .hud-container {
+    max-width: 100%;
+  }
+  .hud-header {
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+  }
+  .typewriter {
+    font-size: 1.4rem;
+    min-height: 80px;
+    margin-bottom: 2rem;
+  }
+  .binary-choices {
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .choice-btn {
+    padding: 1rem;
+    font-size: 1.2rem;
+  }
+  .conf-labels {
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+  }
+  .scale-btn {
+    height: 45px;
+    font-size: 0.9rem;
+    padding: 0;
+  }
+  .huge-score {
+    font-size: 4.5rem;
+  }
+  .score-eval {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+  .tech-input {
+    width: 100%;
+    max-width: 300px;
+  }
+  .register-form {
+    flex-direction: column;
+    align-items: center;
+  }
+  .btn {
+    padding: 10px 20px;
+    font-size: 1.1rem;
+  }
+}
+
