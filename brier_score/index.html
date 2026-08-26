@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5分鐘不確定性雷達：主觀機率校準訓練</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- Background Radar & Grid -->
+        <div class="bg-layer"></div>
+        <div class="radar-ring ring-1"></div>
+        <div class="radar-ring ring-2"></div>
+        <div class="radar-ring ring-3"></div>
+        <div class="radar-sweep"></div>
+        <!-- Slide 1: Cover -->
+        <section class="slide active" id="slide-0" style="justify-content: center; align-items: center; text-align: center;">
+            <div class="glass-panel" style="padding: 5rem; max-width: 1100px;">
+                <h1 class="cover-title"><span id="cover-title-1"></span><span class="accent" id="cover-title-2"></span></h1>
+                <div class="cover-subtitle" style="font-size: 2.2rem; margin-top: 1rem;">量化自身的判斷偏誤，進而客觀優化決策品質</div>
+            </div>
+        </section>
+
+        <!-- Slide 2: Scenario Setup (New) -->
+        <section class="slide" id="slide-0-5">
+            <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center; padding-top: 2rem;">
+                <p style="font-size: 1.6rem; color: var(--neon-cyan); margin-bottom: 2rem; font-family: 'Space Grotesk';">[ SCENARIO ]</p>
+                
+                <h2 style="font-size: 3rem; color: var(--text-main); margin-bottom: 3rem; white-space: nowrap;">
+                    主管問你：「這週的專案 / 任務能<span class="accent">如期完成嗎？</span>」
+                </h2>
+                
+                <div class="glass-panel" style="padding: 1.5rem 3rem; border-top: 4px solid var(--neon-cyan); background: rgba(0, 15, 30, 0.6); margin-top: 1rem;">
+                    <p style="font-size: 1.1rem; color: var(--text-muted); font-family: 'Space Grotesk'; margin-bottom: 0.5rem;">[ 隱藏的客觀事實 ]</p>
+                    <p style="font-size: 1.5rem; color: var(--text-main);">
+                        你內心評估的 <strong style="color: #00FF00;">客觀機率是 80%</strong>
+                    </p>
+                </div>
+                
+                <p style="font-size: 2.8rem; color: var(--neon-orange); margin-top: 4rem; font-weight: bold; text-shadow: 0 0 10px rgba(255, 92, 0, 0.3);">
+                    面對主管詢問，你會怎麼開口？
+                </p>
+            </div>
+        </section>
+
+        <!-- Slide 3: Workplace Scenario (Updated) -->
+        <section class="slide" id="slide-1">
+            <h2 style="font-size: 3rem;">常見的 <span class="accent-warn">兩種極端反應</span></h2>
+            <p style="font-size: 1.5rem; color: var(--text-muted);">面對 80% 的客觀機率，大腦會如何扭曲表達？</p>
+            <div class="scenario-layout" style="margin-top: 3rem;">
+                <div class="glass-panel scenario-card card-conservative">
+                    <span class="quote">「這禮拜可能只有 50% 機率...」</span>
+                    <h3>刻意低估 <span class="accent">(保守避險)</span></h3>
+                    <p>內心明明有 80% 的把握，卻因為害怕承擔風險而往低報。雖然自保了，卻會導致團隊囤積多餘的時間與資源 (Buffer)。</p>
+                </div>
+                <div class="glass-panel scenario-card card-overconfident">
+                    <span class="quote">「絕對沒問題，交給我！」</span>
+                    <h3>刻意高估 <span class="accent-warn">(過度自信)</span></h3>
+                    <p>明明客觀機率只有 80%，卻受到「過度自信」偏誤影響，拍胸脯保證 100%。一旦出現突發狀況，就會讓整個專案措手不及。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 3: Concept -->
+        <!-- Slide 3: Concept Transition -->
+        <section class="slide" id="slide-2">
+            <h2 style="font-size: 3rem;">核心概念：重新校正大腦的<span class="accent">信心尺標</span></h2>
+            
+            <div class="instrument-container" style="margin-top: 4rem;">
+                <div class="instrument-line"></div>
+                <div class="node node-noise">
+                    <div class="wave-icon"></div>
+                    <h3>主觀雜訊</h3>
+                    <p>直覺偏誤與保守避險</p>
+                </div>
+                <div class="node node-calib">
+                    <div class="dial-marks"></div>
+                    <h3 class="accent-warn">機率校準</h3>
+                    <p>(Calibration)</p>
+                </div>
+                <div class="node node-unbiased">
+                    <div class="laser-beam"></div>
+                    <h3 class="accent">無偏預估</h3>
+                    <p>(True Prior)</p>
+                </div>
+            </div>
+            
+            <div style="margin-top: 4rem; display: flex; justify-content: center;">
+                <div class="glass-panel" style="max-width: 900px; width: 100%; padding: 1.5rem 3rem; border-left: 4px solid #00FF00; background: rgba(0, 255, 0, 0.05);">
+                    <p style="color: #00FF00; margin-bottom: 0.5rem; font-family: 'Space Grotesk'; font-size: 1.2rem;">[ 跨部門協作預期效益 ]</p>
+                    <ul style="font-size: 1.3rem; margin-left: 1.5rem; line-height: 2.0; color: var(--text-main); text-align: left;">
+                        <li><strong>對齊真實風險認知</strong>：校準各單位基本認知上的差異，一致化信心程度的基準。</li>
+                        <li><strong>收斂可靠度決策偏差</strong>：讓專案開發的衝勁與品質把關的嚴謹找到交集，確保決策不偏離客觀現實。</li>
+                        <li><strong>建立量化溝通共識</strong>：把模糊的「直覺感受」，轉化為大家都能對焦的機率語言。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 4: Interactive Guide -->
+        <section class="slide" id="slide-3">
+            <h2 style="font-size: 3rem;">實作：<span class="accent">10 道趣味校準挑戰</span></h2>
+            <div style="display: flex; gap: 4rem; margin-top: 4rem;">
+                <div style="flex: 1.2; display: flex; flex-direction: column; justify-content: center;">
+                    <div class="glass-panel" style="padding: 2.5rem; background: rgba(0, 15, 30, 0.8); border: 1px solid rgba(0, 240, 255, 0.3);">
+                        <div style="color: var(--neon-cyan); font-family: 'Space Grotesk'; font-size: 1.2rem; margin-bottom: 2rem;">[ 介面與規則範例 ]</div>
+                        
+                        <div style="font-size: 1.5rem; color: var(--text-main); margin-bottom: 2rem;">
+                            Q: 冰島是世界上唯一沒有蚊子的國家嗎？
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                            <div style="flex: 1; padding: 0.8rem; border: 1px solid var(--text-muted); color: var(--text-muted); border-radius: 4px; text-align: center; font-size: 1.2rem;">TRUE / 是</div>
+                            <div style="flex: 1; padding: 0.8rem; border: 1px solid var(--neon-cyan); color: #000; background: var(--neon-cyan); border-radius: 4px; text-align: center; font-size: 1.2rem; box-shadow: 0 0 15px var(--neon-cyan);">FALSE / 否</div>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; gap: 0.5rem;">
+                            <div style="flex: 1; padding: 0.8rem 0; border: 1px solid var(--text-muted); color: var(--text-muted); text-align: center;">55%</div>
+                            <div style="flex: 1; padding: 0.8rem 0; border: 1px solid var(--text-muted); color: var(--text-muted); text-align: center;">65%</div>
+                            <div style="flex: 1; padding: 0.8rem 0; border: 1px solid var(--neon-orange); color: #000; background: var(--neon-orange); box-shadow: 0 0 15px var(--neon-orange); text-align: center; font-weight: bold;">75%</div>
+                            <div style="flex: 1; padding: 0.8rem 0; border: 1px solid var(--text-muted); color: var(--text-muted); text-align: center;">85%</div>
+                            <div style="flex: 1; padding: 0.8rem 0; border: 1px solid var(--text-muted); color: var(--text-muted); text-align: center;">95%</div>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 2.5rem; font-size: 1.4rem; line-height: 1.8; color: var(--text-main);">
+                        👉 <strong class="accent-warn">直覺答題，每題15秒內完成。</strong><br>
+                        👉 判斷是非的同時，請一併點擊你的「真實信心度」。
+                    </p>
+                </div>
+                
+                <!-- Right: QR Code Panel -->
+                <div style="display: flex; flex-direction: column; justify-content: center;">
+                    <div class="glass-panel" style="padding: 2.5rem 3rem; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 1.2rem; border: 2px solid var(--neon-cyan); background: rgba(0, 243, 255, 0.05);">
+                        <div style="color: var(--text-main); font-size: 1.2rem; letter-spacing: 2px; font-weight: bold;">[ SCAN TO START ]</div>
+                        <div style="background: white; padding: 10px; width: 180px; height: 180px; margin: 0 auto; border-radius: 8px; display: flex; justify-content: center; align-items: center;">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://inhightw.github.io/game/brier_score/index.html?mode=mobile" width="160" height="160" alt="QR Code">
+                        </div>
+                        <div style="color: var(--neon-orange); font-size: 1.3rem; font-weight: bold; margin-top: 0.5rem;">請用手機掃描上方條碼</div>
+                        <div style="font-size: 1rem; color: var(--text-muted);">完成測驗後，結果將自動傳送至主控台</div>
+                        <button class="btn" id="start-quiz-btn" style="margin-top: 1rem; padding: 0.5rem 1rem; font-size: 0.9rem; opacity: 0.6; border: 1px solid var(--text-muted);">[ DEV: 在本機端測試 ]</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 4: Brier Score Guide (New) -->
+        <section class="slide" id="slide-4">
+            <h2 style="font-size: 3rem;">你的分數 <span class="accent">代表什麼？</span></h2>
+            <p style="font-size: 1.5rem; color: var(--text-muted); margin-top: 1rem;">Brier Score (單題平均懲罰)：分數越低，代表你的預估越精準</p>
+            
+            <div style="display: flex; justify-content: center; margin-top: 4rem;">
+                <div class="glass-panel" style="padding: 3.5rem 5rem; width: 100%; max-width: 800px; border-left: 4px solid var(--neon-cyan);">
+                    <h4 style="color: var(--neon-cyan); margin-bottom: 2.5rem; font-family: 'Space Grotesk'; font-size: 1.5rem; letter-spacing: 1px;">
+                        [ 分數落點指南 SCORE GUIDE ] 
+                        <span style="font-size: 1.1rem; color: var(--text-muted); font-family: sans-serif; letter-spacing: normal; margin-left: 1rem;">(無論 10 題或 100 題皆適用)</span>
+                    </h4>
+                    <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 1.8rem; font-size: 1.6rem;">
+                        <li style="display: flex; align-items: center;"><span style="color: #00FF00; min-width: 200px; font-family: 'JetBrains Mono'; font-weight: bold; font-size: 2rem;">0.00 ~ 0.15</span> <span style="color: var(--text-main);">優秀 (高度校準)</span></li>
+                        <li style="display: flex; align-items: center;"><span style="color: var(--neon-cyan); min-width: 200px; font-family: 'JetBrains Mono'; font-size: 2rem;">0.15 ~ 0.25</span> <span style="color: var(--text-main);">正常 (一般常人表現)</span></li>
+                        <li style="display: flex; align-items: center;"><span style="color: var(--neon-orange); min-width: 200px; font-family: 'JetBrains Mono'; font-size: 2rem;">> 0.25</span> <span style="color: var(--text-muted);">極端 (不如亂猜 50%)</span></li>
+                    </ul>
+                    <div style="margin-top: 3rem; font-size: 1.1rem; color: var(--text-muted); border-top: 1px dashed var(--text-muted); padding-top: 1.5rem;">
+                        * 備註：本次 10 題僅供快速體驗。若要建立個人穩健的「校準基準線」(Baseline)，建議至少進行 40~50 題以上的測驗。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 5: Why honesty is best policy (Graph) [HIDDEN] -->
+        <!-- 
+        <section class="slide" id="slide-4-5">
+            <h2 style="font-size: 3rem;">為什麼 <span class="accent">誠實</span> 是最佳策略？</h2>
+            <div class="brier-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; margin-top: 3rem;">
+                
+                <div class="glass-panel" style="padding: 1.5rem; position: relative; width: 100%; aspect-ratio: 1; max-width: 500px; display: flex; flex-direction: column; margin: 0 auto;">
+                    <div style="color: var(--text-muted); font-size: 1rem; font-family: 'Space Grotesk'; margin-bottom: 1rem;">[ EXPECTED PENALTY SCORE ]</div>
+                    
+                    <div style="flex-grow: 1; position: relative;">
+                        <div style="position: absolute; top: -10px; left: 0; color: var(--text-main); font-family: 'JetBrains Mono';">1.00</div>
+                        <div style="position: absolute; top: 73%; left: 0; transform: translateY(-50%); color: var(--text-main); font-family: 'JetBrains Mono';">0.25</div>
+                        <div style="position: absolute; bottom: 0; left: 0; color: var(--text-main); font-family: 'JetBrains Mono';">0.00</div>
+                        
+                        <div style="position: absolute; bottom: -25px; left: 40px; color: var(--text-main); font-family: 'JetBrains Mono';">0%</div>
+                        <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); color: var(--text-main); font-family: 'JetBrains Mono';">50%</div>
+                        <div style="position: absolute; bottom: -25px; right: 0; color: var(--text-main); font-family: 'JetBrains Mono';">100%</div>
+                        <div style="position: absolute; bottom: -45px; right: 0; color: var(--text-muted); font-size: 0.9rem;">內心真實把握度 (p)</div>
+
+                        <svg viewBox="0 0 100 100" style="position: absolute; top: 0; left: 40px; width: calc(100% - 40px); height: 100%; overflow: visible;">
+                            <line x1="0" y1="100" x2="100" y2="100" stroke="#4a5568" stroke-width="1" />
+                            <line x1="0" y1="0" x2="0" y2="100" stroke="#4a5568" stroke-width="1" />
+                            <line x1="0" y1="75" x2="100" y2="75" stroke="#4a5568" stroke-width="1" stroke-dasharray="2,2" />
+                            
+                            <line x1="0" y1="100" x2="100" y2="0" stroke="var(--neon-orange)" stroke-width="1.5" stroke-dasharray="2,2" />
+                            <text x="30" y="70" fill="var(--neon-orange)" font-size="3" transform="rotate(-45 30,70)">硬猜 0% (避險)</text>
+                            
+                            <line x1="0" y1="0" x2="100" y2="100" stroke="#00FF00" stroke-width="1.5" />
+                            <text x="70" y="70" fill="#00FF00" font-size="3" transform="rotate(45 70,70)">硬猜 100% (盲目)</text>
+                            
+                            <path d="M0,100 Q50,50 100,100" fill="none" stroke="var(--neon-cyan)" stroke-width="2.5" stroke-dasharray="3,3" />
+                            <text x="50" y="85" fill="var(--neon-cyan)" font-size="3" text-anchor="middle">誠實作答</text>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="explanation-text" style="display: flex; flex-direction: column; justify-content: center; gap: 2.5rem; height: 100%;">
+                    
+                    <div>
+                        <p style="font-size: 1.4rem; line-height: 1.6; color: var(--text-main);">
+                            不管你內心真正的把握度是多少，代表<strong class="accent">「誠實作答」的藍色虛線，永遠位於圖表的最下方</strong>（懲罰最低）。
+                        </p>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div class="highlight-box" style="padding: 1.5rem; background: rgba(255, 92, 0, 0.1); border-left: 4px solid var(--neon-orange); border-radius: 4px;">
+                            <p style="margin-bottom: 0.5rem; color: var(--neon-orange); font-weight: bold; font-size: 1.2rem;">[ 避險的代價 ]</p>
+                            <p style="font-size: 1.1rem; line-height: 1.5; color: var(--text-muted);">明明有 70% 把握卻低報，預期懲罰將大幅飆高。</p>
+                        </div>
+                        
+                        <div class="highlight-box" style="padding: 1.5rem; background: rgba(0, 255, 0, 0.05); border-left: 4px solid #00FF00; border-radius: 4px;">
+                            <p style="margin-bottom: 0.5rem; color: #00FF00; font-weight: bold; font-size: 1.2rem;">[ 盲目的代價 ]</p>
+                            <p style="font-size: 1.1rem; line-height: 1.5; color: var(--text-muted);">只有 60% 把握卻保證 100%，翻車將面臨極端懲罰。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        -->
+
+
+
+        <!-- Slide 7: Statistics -->
+        <section class="slide" id="slide-6">
+            <h2 style="font-size: 3rem;">團隊校準 <span class="accent-warn">統計分布</span></h2>
+            <div style="display: flex; justify-content: center; margin-top: 2rem; height: 60vh;">
+                <div class="glass-panel dash-panel" style="max-width: 800px; width: 100%;">
+                    <h3 style="color: var(--neon-orange); text-align: center;">[ POPULATION ANALYSIS ]</h3>
+                    
+                    <div id="stats-dashboard" style="margin-top: 2rem; display: none;">
+                        <div style="display: flex; justify-content: space-around; margin-bottom: 2rem; font-family: 'JetBrains Mono'; text-align: center;">
+                            <div>
+                                <div style="color: var(--text-muted); font-size: 0.9rem;">TOTAL</div>
+                                <div style="font-size: 2.5rem; color: var(--text-main);" id="stat-total">0</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-muted); font-size: 0.9rem;">AVG SCORE</div>
+                                <div style="font-size: 2.5rem; color: var(--neon-cyan);" id="stat-avg">0.00</div>
+                            </div>
+                        </div>
+
+                        <!-- 2-Column Grid for Charts -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center; margin-top: 1rem;">
+                            <!-- Left: Histogram -->
+                            <div style="width: 100%; height: 250px; display: flex; flex-direction: column; align-items: center;">
+                                <div style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem; letter-spacing: 1px;">分數分佈 (Brier Score Distribution)</div>
+                                <canvas id="scoreHistogram"></canvas>
+                            </div>
+                            <!-- Right: Doughnut Chart -->
+                            <div style="width: 100%; height: 250px; display: flex; flex-direction: column; align-items: center;">
+                                <div style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem; letter-spacing: 1px;">偏誤屬性 (Bias Types)</div>
+                                <canvas id="biasPieChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="stats-loading" style="text-align: center; padding: 20px; font-family: 'JetBrains Mono';">載入數據中...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation Controls -->
+        <div class="nav-controls">
+            <button class="nav-btn" id="prev-slide">◀</button>
+            <button class="nav-btn" id="next-slide">▶</button>
+        </div>
+    </div>
+
+    <!-- Quiz Overlay (HUD) -->
+    <div id="quiz-overlay">
+        <div class="glass-panel hud-container" id="quiz-container" style="padding: 4rem;">
+            <div class="hud-header" style="justify-content: space-between; align-items: center;">
+                <span>Subjective Calibration Module</span>
+                <div style="display: flex; gap: 2rem; align-items: center;">
+                    <span id="timer-display" style="color: var(--neon-orange); font-family: 'JetBrains Mono'; font-size: 1.5rem; font-weight: bold; min-width: 80px; text-align: right;">00:10</span>
+                    <span id="quiz-progress" class="accent">Q 01 / 10</span>
+                </div>
+            </div>
+            
+            <div style="width: 100%; height: 2px; background: rgba(255,255,255,0.1); margin-top: 1rem; margin-bottom: 2rem;">
+                <div id="timer-bar" style="width: 100%; height: 100%; background: var(--neon-orange);"></div>
+            </div>
+            
+            <div id="question-screen">
+                <div class="typewriter" id="question-text">
+                    <span id="q-type-content"></span><span class="cursor"></span>
+                </div>
+                
+                <div class="binary-choices">
+                    <button class="choice-btn" data-val="true" id="btn-true">TRUE / 是</button>
+                    <button class="choice-btn" data-val="false" id="btn-false">FALSE / 否</button>
+                </div>
+                
+                <div class="conf-slider-container" id="conf-section">
+                    <div class="conf-labels">
+                        <span>CONFIDENCE_LEVEL</span>
+                        <span class="accent-warn">SELECT [55 - 95]</span>
+                    </div>
+                    <div class="confidence-scale" id="confidence-scale" style="display: flex; justify-content: space-between; margin-top: 2rem; gap: 10px;">
+                        <button class="scale-btn" data-conf="0.55">55%</button>
+                        <button class="scale-btn" data-conf="0.65">65%</button>
+                        <button class="scale-btn" data-conf="0.75">75%</button>
+                        <button class="scale-btn" data-conf="0.85">85%</button>
+                        <button class="scale-btn" data-conf="0.95">95%</button>
+                    </div>
+                </div>
+                
+                <div class="hud-footer">
+                    <button class="btn" id="next-question-btn" disabled>EXECUTE</button>
+                </div>
+            </div>
+            
+            <div id="result-screen" class="result-screen">
+                <div class="hud-header" style="justify-content: center; margin-bottom: 1rem;">
+                    <span>[ CALIBRATION COMPLETE ]</span>
+                </div>
+                <div style="font-family: 'Space Grotesk'; font-size: 1.5rem;">YOUR BRIER SCORE</div>
+                <div class="huge-score" id="final-brier-score">0.000</div>
+                <div class="score-eval" id="score-feedback"></div>
+                
+                <div class="register-form" style="margin-top: 1rem; text-align: center;">
+                    <div style="color: var(--neon-cyan); font-family: 'JetBrains Mono'; margin-bottom: 0.5rem;" id="sync-status">>> SYNCING TO CLOUD...</div>
+                </div>
+                <button class="btn" id="close-quiz-btn" style="background: transparent; border-color: var(--text-muted); color: var(--text-muted);">EXIT_MODULE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, query, orderByChild, limitToFirst } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        
+        const firebaseConfig = {};
+
+        window.dbSystem = {
+            useFirebase: !!firebaseConfig.databaseURL,
+            db: null,
+            init: function() {
+                if (this.useFirebase) {
+                    const app = initializeApp(firebaseConfig);
+                    this.db = getDatabase(app);
+                }
+            },
+            saveScore: function(name, score) {
+                if (this.useFirebase) {
+                    const scoreListRef = ref(this.db, 'leaderboard');
+                    push(scoreListRef, { name: name, score: score, timestamp: Date.now() });
+                } else {
+                    let board = JSON.parse(localStorage.getItem('brier_leaderboard_v2') || '[]');
+                    board.push({ name: name, score: score, timestamp: Date.now() });
+                    localStorage.setItem('brier_leaderboard_v2', JSON.stringify(board));
+                    this.triggerLocalRender();
+                }
+            },
+            listenScores: function(callback) {
+                if (this.useFirebase) {
+                    const topScoresRef = query(ref(this.db, 'leaderboard'), orderByChild('score'), limitToFirst(10));
+                    onValue(topScoresRef, (snapshot) => {
+                        let scores = [];
+                        snapshot.forEach((child) => { scores.push(child.val()); });
+                        callback(scores);
+                    });
+                } else {
+                    this.localCallback = callback;
+                    this.triggerLocalRender();
+                }
+            },
+            triggerLocalRender: function() {
+                if (this.localCallback) {
+                    let board = JSON.parse(localStorage.getItem('brier_leaderboard_v2') || '[]');
+                    board.sort((a, b) => a.score - b.score);
+                    this.localCallback(board.slice(0, 10));
+                }
+            }
+        };
+        window.dbSystem.init();
+    </script>
+
+    <script src="calibration_data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
