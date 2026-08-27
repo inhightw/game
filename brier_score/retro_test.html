@@ -70,8 +70,9 @@
         }
 
         .question-text {
-            font-size: 1rem;
+            font-size: 1.3rem;
             line-height: 1.6;
+            min-height: 80px;
         }
 
         /* True/False Buttons (Brick style) */
@@ -235,6 +236,24 @@
         let hasBinary = false;
         let hasConf = false;
         const btn = document.getElementById('submit-btn');
+
+        // Typing Effect
+        const fullText = "冰島是世界上唯一沒有蚊子的國家嗎？";
+        const qTextEl = document.getElementById('q-text');
+        let charIndex = 0;
+        
+        qTextEl.innerHTML = ""; // Clear text initially
+        
+        function typeWriter() {
+            if (charIndex < fullText.length) {
+                qTextEl.innerHTML += fullText.charAt(charIndex);
+                charIndex++;
+                setTimeout(typeWriter, 80); // Speed of typing
+            }
+        }
+        
+        // Start typing effect on load
+        setTimeout(typeWriter, 300);
 
         function selectBinary(el) {
             document.querySelectorAll('.pixel-btn').forEach(b => b.classList.remove('selected'));
