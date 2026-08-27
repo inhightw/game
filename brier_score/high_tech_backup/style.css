@@ -428,11 +428,12 @@ h1, h2, h3, .number-font {
   font-weight: bold;
 }
 
-/* Quiz Overlay / Radar HUD -> Now Retro Mobile HUD */
+/* Quiz Overlay / Radar HUD */
 #quiz-overlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background-color: #5c94fc; /* Mario Sky Blue */
+  background: rgba(3, 8, 17, 0.95);
+  backdrop-filter: blur(20px);
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -441,147 +442,247 @@ h1, h2, h3, .number-font {
   opacity: 0;
   visibility: hidden;
   transition: all 0.4s ease;
-  font-family: 'Press Start 2P', monospace;
-  overflow: hidden;
 }
 #quiz-overlay.active {
   opacity: 1; visibility: visible;
 }
 
-/* Pixel Clouds Decoration inside quiz overlay */
-#quiz-overlay .cloud {
-    position: absolute;
-    background: #fff;
-    width: 60px;
-    height: 20px;
-    z-index: 0;
-    box-shadow: 
-        20px -20px 0 0 #fff,
-        40px -20px 0 0 #fff,
-        60px -20px 0 0 #fff,
-        -20px 20px 0 0 #fff,
-        0px 20px 0 0 #fff,
-        20px 20px 0 0 #fff,
-        40px 20px 0 0 #fff,
-        60px 20px 0 0 #fff,
-        80px 20px 0 0 #fff;
-    opacity: 0.8;
+.hud-container {
+  width: 100%; max-width: 900px;
+  position: relative;
 }
+/* Corner decorations for HUD */
+.hud-container::before, .hud-container::after {
+  content: ''; position: absolute; width: 30px; height: 30px; border: 2px solid var(--neon-cyan);
+}
+.hud-container::before { top: -20px; left: -20px; border-right: none; border-bottom: none; }
+.hud-container::after { bottom: -20px; right: -20px; border-left: none; border-top: none; }
 
-.retro-quiz-container {
-    position: relative;
-    z-index: 10;
+.hud-header {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'JetBrains Mono';
+  color: var(--text-muted);
+  margin-bottom: 3rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
-
-/* RPG Dialog Box */
-.dialog-box {
-    background-color: #000000;
-    border: 4px solid #ffffff;
-    border-radius: 4px;
-    padding: 1.5rem;
-    min-height: 120px;
-    margin-bottom: 2rem;
-    position: relative;
-    box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+.typewriter {
+  font-size: 2.2rem;
+  line-height: 1.4;
+  min-height: 100px;
+  margin-bottom: 3rem;
+  font-weight: 500;
 }
-.dialog-box::after {
-    content: '▼';
-    position: absolute;
-    bottom: 5px;
-    right: 10px;
-    font-size: 0.8rem;
-    animation: bounce 1s infinite;
-}
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-}
-
-.question-text {
-    font-size: 1.3rem;
-    line-height: 1.6;
-    min-height: 80px;
-    font-family: 'Press Start 2P', monospace;
-}
-
 .cursor {
   display: inline-block;
   width: 10px; height: 1.2em;
-  background: #ffffff;
+  background: var(--neon-cyan);
   animation: blink 1s step-end infinite;
   vertical-align: text-bottom;
   margin-left: 5px;
 }
 @keyframes blink { 50% { opacity: 0; } }
 
-/* Retro Pixel Button (Brick Red) */
-#quiz-overlay .pixel-btn {
-    background-color: #c84c0c;
-    border: 4px solid #000;
-    box-shadow: inset -4px -4px 0px rgba(0,0,0,0.3), inset 4px 4px 0px rgba(255,255,255,0.3), 4px 4px 0px rgba(0,0,0,0.5);
-    color: #fff;
-    padding: 1.5rem 0.5rem;
-    font-size: 1rem;
-    text-align: center;
-    cursor: pointer;
-    text-shadow: 2px 2px 0px #000;
-    font-family: 'Press Start 2P', monospace;
+.binary-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 4rem;
 }
-#quiz-overlay .pixel-btn:active, #quiz-overlay .pixel-btn.selected {
-    transform: translate(4px, 4px);
-    box-shadow: inset -4px -4px 0px rgba(0,0,0,0.3), inset 4px 4px 0px rgba(255,255,255,0.3);
-    background-color: #fca044;
+.choice-btn {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--text-muted);
+  padding: 2rem;
+  color: var(--text-main);
+  font-size: 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Space Grotesk';
 }
-
-/* Confidence Buttons */
-.conf-btn {
-    flex: 1;
-    background-color: #000;
-    border: 2px solid #fff;
-    color: #fff;
-    padding: 10px 0;
-    font-size: 0.7rem;
-    cursor: pointer;
-    font-family: 'Press Start 2P', monospace;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
+.choice-btn:hover {
+  background: rgba(255,255,255,0.05);
 }
-.conf-btn:active, .conf-btn.selected {
-    background-color: #f8d820;
-    color: #000;
-    border-color: #000;
+.choice-btn.selected {
+  border-color: var(--neon-cyan);
+  box-shadow: inset 0 0 20px var(--neon-cyan-dim);
+  color: var(--neon-cyan);
 }
 
-/* Action Button */
-.action-btn {
-    background-color: #80d010;
-    border: 4px solid #000;
-    box-shadow: inset -4px -4px 0px rgba(0,0,0,0.3), inset 4px 4px 0px rgba(255,255,255,0.3), 4px 4px 0px rgba(0,0,0,0.5);
-    color: #fff;
+.conf-slider-container {
+  margin-bottom: 3rem;
+  opacity: 1;
+  transform: translateY(0);
+}
+.conf-slider-container.visible {
+  opacity: 1; transform: translateY(0);
+}
+.conf-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'JetBrains Mono';
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+.conf-scale {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+}
+.scale-btn {
+  flex: 1;
+  height: 60px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-main);
+  font-family: 'JetBrains Mono';
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.scale-btn:hover { background: rgba(255,255,255,0.1); }
+.scale-btn.selected {
+  background: var(--neon-orange);
+  border-color: var(--neon-orange);
+  color: #000;
+  font-weight: bold;
+}
+
+.hud-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Result Screen */
+.result-screen {
+  text-align: center;
+  display: none;
+}
+.result-screen.active {
+  display: block;
+  animation: fadeIn 1s ease forwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.huge-score {
+  font-family: 'JetBrains Mono';
+  font-size: 8rem;
+  color: var(--neon-cyan);
+  font-weight: 700;
+  line-height: 1;
+  margin: 2rem 0;
+  text-shadow: 0 0 50px var(--neon-cyan-dim);
+}
+.score-eval {
+  font-size: 1.5rem;
+  color: var(--neon-orange);
+  margin-bottom: 3rem;
+  font-family: 'Space Grotesk';
+}
+
+.register-form {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+.tech-input {
+  background: rgba(0,0,0,0.5);
+  border: 1px solid var(--neon-cyan);
+  padding: 15px 20px;
+  color: var(--neon-cyan);
+  font-family: 'JetBrains Mono';
+  font-size: 1.2rem;
+  width: 300px;
+  outline: none;
+}
+.tech-input::placeholder { color: rgba(0, 240, 255, 0.3); }
+
+/* Stats Bar Chart */
+.stats-bar-container {
+  margin: 1.5rem 0;
+  width: 100%;
+}
+.stats-bar-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-family: 'JetBrains Mono';
+  color: var(--text-muted);
+}
+.stats-bar-bg {
+  width: 100%;
+  height: 12px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.stats-bar-fill {
+  height: 100%;
+  transition: width 1s ease-out;
+}
+.fill-blind { background-color: #00FF00; box-shadow: 0 0 10px #00FF00; }
+.fill-conservative { background-color: var(--neon-orange); box-shadow: 0 0 10px var(--neon-orange); }
+.fill-perfect { background-color: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); }
+
+/* --- Mobile Responsive Rules for Quiz Overlay --- */
+@media (max-width: 768px) {
+  #quiz-overlay {
+    padding: 1rem;
+    box-sizing: border-box;
+  }
+  .hud-container {
+    max-width: 100%;
+  }
+  .hud-header {
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+  }
+  .typewriter {
+    font-size: 1.4rem;
+    min-height: 80px;
+    margin-bottom: 2rem;
+  }
+  .binary-choices {
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .choice-btn {
     padding: 1rem;
     font-size: 1.2rem;
+  }
+  .conf-labels {
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+  }
+  .scale-btn {
+    height: 45px;
+    font-size: 0.9rem;
+    padding: 0;
+  }
+  .huge-score {
+    font-size: 4.5rem;
+  }
+  .score-eval {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+  .tech-input {
     width: 100%;
-    text-align: center;
-    text-shadow: 2px 2px 0px #000;
-    opacity: 0.5;
-    cursor: not-allowed;
-    font-family: 'Press Start 2P', monospace;
-    margin-top: 1rem;
-}
-.action-btn:not([disabled]) {
-    opacity: 1;
-    cursor: pointer;
-}
-.action-btn:not([disabled]):active {
-    transform: translate(4px, 4px);
-    box-shadow: inset -4px -4px 0px rgba(0,0,0,0.3), inset 4px 4px 0px rgba(255,255,255,0.3);
-}
-
-.time-warning {
-    color: #ffcccc;
-    animation: blink 0.5s infinite;
+    max-width: 300px;
+  }
+  .register-form {
+    flex-direction: column;
+    align-items: center;
+  }
+  .btn {
+    padding: 10px 20px;
+    font-size: 1.1rem;
+  }
 }
 
 

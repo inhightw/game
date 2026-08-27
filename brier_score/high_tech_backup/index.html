@@ -290,61 +290,60 @@
 
     <!-- Quiz Overlay (HUD) -->
     <div id="quiz-overlay">
-        <!-- Pixel Clouds Decoration -->
-        <div class="cloud" style="top: 10%; left: 10%; transform: scale(0.5);"></div>
-        <div class="cloud" style="top: 40%; right: 30%; transform: scale(0.8);"></div>
-
-        <div class="retro-quiz-container" id="quiz-container" style="padding: 1rem; width: 100%; max-width: 600px; margin: 0 auto; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; justify-content: center; color: #ffffff;">
-            <div class="hud" style="display: flex; justify-content: space-between; margin-bottom: 1rem; text-shadow: 2px 2px 0px #000; font-size: 0.8rem;">
-                <div id="quiz-progress" style="color: #f8d820">Q 01 / 10</div>
-                <div>TIME: <span id="timer-display" class="time-warning" style="font-size: 1.2rem;">15</span></div>
+        <div class="glass-panel hud-container" id="quiz-container" style="padding: 4rem;">
+            <div class="hud-header" style="justify-content: space-between; align-items: center;">
+                <span>Subjective Calibration Module</span>
+                <div style="display: flex; gap: 2rem; align-items: center;">
+                    <span id="timer-display" style="color: var(--neon-orange); font-family: 'JetBrains Mono'; font-size: 1.5rem; font-weight: bold; min-width: 80px; text-align: right;">00:10</span>
+                    <span id="quiz-progress" class="accent">Q 01 / 10</span>
+                </div>
             </div>
             
-            <!-- Hide the old timer bar but keep the DOM element for JS logic compatibility if needed -->
-            <div id="timer-bar" style="display: none;"></div>
+            <div style="width: 100%; height: 2px; background: rgba(255,255,255,0.1); margin-top: 1rem; margin-bottom: 2rem;">
+                <div id="timer-bar" style="width: 100%; height: 100%; background: var(--neon-orange);"></div>
+            </div>
             
             <div id="question-screen">
-                <!-- Question Box -->
-                <div class="dialog-box">
-                    <div class="question-text" id="question-text">
-                        <span id="q-type-content"></span><span class="cursor"></span>
+                <div class="typewriter" id="question-text">
+                    <span id="q-type-content"></span><span class="cursor"></span>
+                </div>
+                
+                <div class="binary-choices">
+                    <button class="choice-btn" data-val="true" id="btn-true">TRUE / 是</button>
+                    <button class="choice-btn" data-val="false" id="btn-false">FALSE / 否</button>
+                </div>
+                
+                <div class="conf-slider-container" id="conf-section">
+                    <div class="conf-labels">
+                        <span>CONFIDENCE_LEVEL</span>
+                        <span class="accent-warn">SELECT [55 - 95]</span>
+                    </div>
+                    <div class="confidence-scale" id="confidence-scale" style="display: flex; justify-content: space-between; margin-top: 2rem; gap: 10px;">
+                        <button class="scale-btn" data-conf="0.55">55%</button>
+                        <button class="scale-btn" data-conf="0.65">65%</button>
+                        <button class="scale-btn" data-conf="0.75">75%</button>
+                        <button class="scale-btn" data-conf="0.85">85%</button>
+                        <button class="scale-btn" data-conf="0.95">95%</button>
                     </div>
                 </div>
                 
-                <!-- True / False -->
-                <div class="binary-choices" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
-                    <button class="pixel-btn" data-val="true" id="btn-true">TRUE</button>
-                    <button class="pixel-btn" data-val="false" id="btn-false">FALSE</button>
+                <div class="hud-footer">
+                    <button class="btn" id="next-question-btn" disabled>EXECUTE</button>
                 </div>
-                
-                <!-- Confidence -->
-                <div class="conf-section" id="conf-section" style="background: rgba(0,0,0,0.4); padding: 1rem; border: 4px solid #000; border-radius: 4px; margin-bottom: 2rem;">
-                    <div class="conf-title" style="font-size: 0.7rem; text-align: center; margin-bottom: 1rem; color: #f8d820; text-shadow: 2px 2px 0px #000;">CONFIDENCE LEVEL</div>
-                    <div class="conf-scale" id="confidence-scale" style="display: flex; justify-content: space-between; gap: 5px;">
-                        <button class="conf-btn" data-conf="0.55">55%</button>
-                        <button class="conf-btn" data-conf="0.65">65%</button>
-                        <button class="conf-btn" data-conf="0.75">75%</button>
-                        <button class="conf-btn" data-conf="0.85">85%</button>
-                        <button class="conf-btn" data-conf="0.95">95%</button>
-                    </div>
-                </div>
-                
-                <!-- Submit -->
-                <button class="action-btn" id="next-question-btn" disabled>EXECUTE</button>
             </div>
             
-            <div id="result-screen" class="result-screen" style="display: none; text-align: center;">
-                <div class="hud" style="justify-content: center; margin-bottom: 2rem; color: #f8d820;">
-                    <span>[ STAGE CLEAR ]</span>
+            <div id="result-screen" class="result-screen">
+                <div class="hud-header" style="justify-content: center; margin-bottom: 1rem;">
+                    <span>[ CALIBRATION COMPLETE ]</span>
                 </div>
-                <div style="font-size: 1.2rem; text-shadow: 2px 2px 0px #000; margin-bottom: 1rem;">YOUR BRIER SCORE</div>
-                <div class="huge-score" id="final-brier-score" style="font-size: 3.5rem; color: #fff; text-shadow: 4px 4px 0px #000; margin-bottom: 2rem; word-break: break-all;">0.000</div>
-                <div class="score-eval" id="score-feedback" style="font-size: 0.9rem; line-height: 1.5; text-shadow: 2px 2px 0px #000; margin-bottom: 2rem;"></div>
+                <div style="font-family: 'Space Grotesk'; font-size: 1.5rem;">YOUR BRIER SCORE</div>
+                <div class="huge-score" id="final-brier-score">0.000</div>
+                <div class="score-eval" id="score-feedback"></div>
                 
-                <div class="register-form" style="margin-top: 1rem; text-align: center; margin-bottom: 2rem;">
-                    <div style="color: #80d010; margin-bottom: 1rem;" id="sync-status">>> SYNCING TO CLOUD...</div>
+                <div class="register-form" style="margin-top: 1rem; text-align: center;">
+                    <div style="color: var(--neon-cyan); font-family: 'JetBrains Mono'; margin-bottom: 0.5rem;" id="sync-status">>> SYNCING TO CLOUD...</div>
                 </div>
-                <button class="action-btn" id="close-quiz-btn" style="background-color: #c84c0c; opacity: 1; cursor: pointer;">EXIT MODULE</button>
+                <button class="btn" id="close-quiz-btn" style="background: transparent; border-color: var(--text-muted); color: var(--text-muted);">EXIT_MODULE</button>
             </div>
         </div>
     </div>

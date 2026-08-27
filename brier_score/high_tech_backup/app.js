@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function typeWriter(text, index, cb) {
         if (index < text.length) {
             qTypeContent.innerHTML += text.charAt(index);
-            typeWriterTimer = setTimeout(() => typeWriter(text, index + 1, cb), 80);
+            typeWriterTimer = setTimeout(() => typeWriter(text, index + 1, cb), 30);
         } else {
             if (cb) cb();
         }
