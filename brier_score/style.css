@@ -685,3 +685,55 @@ h1, h2, h3, .number-font {
   }
 }
 
+
+/* --- 8-Bit Mobile Start Screen --- */
+#mobile-start-screen {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-color: #E2F3F5;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Press Start 2P', monospace;
+  text-align: center;
+}
+.pixel-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+  padding: 2rem;
+}
+.pixel-title {
+  font-size: 2.2rem;
+  color: #1A3681;
+  line-height: 1.5;
+  text-shadow: 2px 2px 0px #fff;
+}
+.pixel-subtitle {
+  font-size: 0.8rem;
+  color: #4A602B;
+}
+.pixel-btn {
+  background-color: #5BA14F;
+  border: 4px solid #333;
+  color: white;
+  padding: 15px 30px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 4px 4px 0px #333;
+  margin: 2rem 0;
+}
+.pixel-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px #333;
+}
+.pixel-footer {
+  font-size: 0.7rem;
+  color: #8C4010;
+  margin-top: 4rem;
+}
+

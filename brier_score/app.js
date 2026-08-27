@@ -360,11 +360,19 @@ document.addEventListener('DOMContentLoaded', () => {
         initQuiz();
     });
 
+    const mobileStartScreen = document.getElementById('mobile-start-screen');
+    const mobileStartBtn = document.getElementById('btn-start-quiz');
+
     if (isMobileMode) {
         document.querySelector('.presentation-container').style.display = 'none';
         document.getElementById('close-quiz-btn').style.display = 'none';
-        quizOverlay.classList.add('active');
-        initQuiz();
+        mobileStartScreen.style.display = 'flex';
+        
+        mobileStartBtn.addEventListener('click', () => {
+            mobileStartScreen.style.display = 'none';
+            quizOverlay.classList.add('active');
+            initQuiz();
+        });
     }
 
     closeBtn.addEventListener('click', () => {
