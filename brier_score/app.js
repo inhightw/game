@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnTrue = document.getElementById('btn-true');
     const btnFalse = document.getElementById('btn-false');
     const confSection = document.getElementById('conf-section');
-    const scaleBtns = document.querySelectorAll('.scale-btn');
+    const scaleBtns = document.querySelectorAll('.conf-btn');
     const nextQBtn = document.getElementById('next-question-btn');
     
     const qScreen = document.getElementById('question-screen');
