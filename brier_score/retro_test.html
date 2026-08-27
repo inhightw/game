@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Retro 8-Bit Quiz Mockup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Press Start 2P', monospace;
+            user-select: none;
+        }
+
+        body {
+            background-color: #5c94fc; /* Mario Sky Blue */
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            padding: 1rem;
+        }
+
+        /* Top HUD */
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 0px #000;
+            font-size: 0.8rem;
+        }
+        
+        .time-warning {
+            color: #ffcccc;
+            animation: blink 0.5s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* RPG Dialog Box for Question */
+        .dialog-box {
+            background-color: #000000;
+            border: 4px solid #ffffff;
+            border-radius: 4px;
+            padding: 1.5rem;
+            min-height: 120px;
+            margin-bottom: 2rem;
+            position: relative;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+        }
+        
+        .dialog-box::after {
+            content: '▼';
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+            font-size: 0.8rem;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .question-text {
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        /* True/False Buttons (Brick style) */
+        .binary-choices {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .pixel-btn {
+            background-color: #c84c0c; /* Brick red */
+            border: 4px solid #000;
+            box-shadow: inset -4px -4px 0px rgba(0,0,0,0.3), inset 4px 4px 0px rgba(255,255,255,0.3), 4px 4px 0px rgba(0,0,0,0.5);
+            color: #fff;
+            padding: 1.5rem 0.5rem;
+            font-size: 1rem;
+            text-align: center;
+            cursor: pointer;
+            text-shadow: 2px 2px 0px #000;
+        }
+
+        .pixel-btn:active, .pixel-btn.selected {
+            transform: translate(4px, 4px);
+            box-shadow: inset -4px -4px 0px rgba(0,0,0,0.3), inset 4px 4px 0px rgba(255,255,255,0.3);
+            background-color: #fca044;
+        }
+
+        /* Confidence Scale (Coin/Block style) */
+        .conf-section {
+            background: rgba(0,0,0,0.4);
+            padding: 1rem;
+            border: 4px solid #000;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+        }
+
+        .conf-title {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: #f8d820; /* Coin yellow */
+            text-shadow: 2px 2px 0px #000;
+        }
+
+        .conf-scale {
+            display: flex;
+            justify-content: space-between;
+            gap: 5px;
+        }
+
+        .conf-btn {
+            flex: 1;
+            background-color: #000;
+            border: 2px solid #fff;
+            color: #fff;
+            padding: 10px 0;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
+        .conf-btn:active, .conf-btn.selected {
+            background-color: #f8d820;
+            color: #000;
+            border-color: #000;
+        }
+
+        /* Action Button */
+        .action-btn {
+            background-color: #80d010; /* Pipe green */
+            border: 4px solid #000;
+            box-shadow: inset -4px -4px 0px rgba(0,0,0,0.3), inset 4px 4px 0px rgba(255,255,255,0.3), 4px 4px 0px rgba(0,0,0,0.5);
+            color: #fff;
+            padding: 1rem;
+            font-size: 1.2rem;
+            width: 100%;
+            text-align: center;
+            text-shadow: 2px 2px 0px #000;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-btn.ready {
+            opacity: 1;
+            cursor: pointer;
+        }
+
+        .action-btn.ready:active {
+            transform: translate(4px, 4px);
+            box-shadow: inset -4px -4px 0px rgba(0,0,0,0.3), inset 4px 4px 0px rgba(255,255,255,0.3);
+        }
+        
+        /* Pixel Clouds Decoration */
+        .cloud {
+            position: absolute;
+            background: #fff;
+            width: 60px;
+            height: 20px;
+            top: 20px;
+            left: 20px;
+            z-index: -1;
+            box-shadow: 
+                20px -20px 0 0 #fff,
+                40px -20px 0 0 #fff,
+                60px -20px 0 0 #fff,
+                -20px 20px 0 0 #fff,
+                0px 20px 0 0 #fff,
+                20px 20px 0 0 #fff,
+                40px 20px 0 0 #fff,
+                60px 20px 0 0 #fff,
+                80px 20px 0 0 #fff;
+            opacity: 0.8;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="cloud" style="top: 10%; left: 10%; transform: scale(0.5);"></div>
+    <div class="cloud" style="top: 40%; right: 30%; transform: scale(0.8);"></div>
+
+    <div class="hud">
+        <div>SCORE: <span style="color: #f8d820">000000</span></div>
+        <div>TIME: <span id="timer" class="time-warning">15</span></div>
+    </div>
+    
+    <div style="text-align: right; margin-bottom: 1rem; font-size: 0.8rem; text-shadow: 2px 2px 0px #000;">
+        STAGE 1-1
+    </div>
+
+    <!-- Question Box -->
+    <div class="dialog-box">
+        <div class="question-text" id="q-text">
+            冰島是世界上唯一沒有蚊子的國家嗎？
+        </div>
+    </div>
+
+    <!-- True / False -->
+    <div class="binary-choices">
+        <div class="pixel-btn" onclick="selectBinary(this)">TRUE</div>
+        <div class="pixel-btn" onclick="selectBinary(this)">FALSE</div>
+    </div>
+
+    <!-- Confidence -->
+    <div class="conf-section">
+        <div class="conf-title">CONFIDENCE LEVEL</div>
+        <div class="conf-scale">
+            <div class="conf-btn" onclick="selectConf(this)">55%</div>
+            <div class="conf-btn" onclick="selectConf(this)">65%</div>
+            <div class="conf-btn" onclick="selectConf(this)">75%</div>
+            <div class="conf-btn" onclick="selectConf(this)">85%</div>
+            <div class="conf-btn" onclick="selectConf(this)">95%</div>
+        </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="action-btn" id="submit-btn" onclick="submit()">
+        EXECUTE
+    </div>
+
+    <script>
+        let hasBinary = false;
+        let hasConf = false;
+        const btn = document.getElementById('submit-btn');
+
+        function selectBinary(el) {
+            document.querySelectorAll('.pixel-btn').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+            hasBinary = true;
+            checkReady();
+        }
+
+        function selectConf(el) {
+            document.querySelectorAll('.conf-btn').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+            hasConf = true;
+            checkReady();
+        }
+
+        function checkReady() {
+            if (hasBinary && hasConf) {
+                btn.classList.add('ready');
+            }
+        }
+        
+        function submit() {
+            if (!hasBinary || !hasConf) return;
+            // Fake animation
+            btn.innerHTML = "BOOM!";
+            setTimeout(() => {
+                btn.innerHTML = "EXECUTE";
+                document.querySelectorAll('.selected').forEach(b => b.classList.remove('selected'));
+                hasBinary = false;
+                hasConf = false;
+                btn.classList.remove('ready');
+            }, 500);
+        }
+    </script>
+</body>
+</html>
