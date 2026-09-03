@@ -328,8 +328,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const accuracy = correctCount / userAnswers.length;
         
         let biasType = "perfect";
-        if (avgConf > accuracy + 0.15) biasType = "blind";
-        else if (avgConf < accuracy - 0.15) biasType = "conservative";
+        if (brierScore > 0.25) {
+            biasType = "blind"; // 第一關：大於 0.25 直接判定盲目自信
+        } else {
+            // 第二關：小於等於 0.25 才細分
+            if (avgConf > accuracy + 0.15) biasType = "blind";
+            else if (avgConf < accuracy - 0.15) biasType = "conservative";
+        }
         window.currentBiasType = biasType;
         
         // Number animation
