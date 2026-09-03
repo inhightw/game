@@ -9,6 +9,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
+
+    <!-- Floating Round Selector -->
+    <div id="round-control-panel" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: none; gap: 10px; align-items: center; font-family: 'Space Grotesk', sans-serif; background: rgba(0,15,30,0.8); padding: 10px 15px; border: 1px solid var(--neon-cyan); border-radius: 4px; box-shadow: 0 0 10px rgba(0,243,255,0.2);">
+        <span style="color: var(--neon-cyan); font-weight: bold; font-size: 0.9rem;">[ ROUND CONTROL ]</span>
+        <select id="round-selector" style="background: #000; color: #fff; border: 1px solid var(--neon-cyan); padding: 5px; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; cursor: pointer; outline: none;">
+            <option value="1">ROUND 1</option>
+            <option value="2">ROUND 2</option>
+            <option value="3">ROUND 3</option>
+            <option value="4">ROUND 4</option>
+            <option value="5">ROUND 5</option>
+            <option value="6">ROUND 6</option>
+            <option value="7">ROUND 7</option>
+            <option value="8">ROUND 8</option>
+            <option value="9">ROUND 9</option>
+            <option value="10">ROUND 10</option>
+            <option value="all">ALL (累積總計)</option>
+        </select>
+    </div>
+    
     <div class="presentation-container">
         <!-- Background Radar & Grid -->
         <div class="bg-layer"></div>
@@ -105,24 +124,45 @@
             <h2 style="font-size: 3rem;">實作：<span class="accent">10 道趣味校準挑戰</span></h2>
             <div style="display: flex; gap: 4rem; margin-top: 4rem;">
                 <div style="flex: 1.2; display: flex; flex-direction: column; justify-content: center;">
-                    <div class="glass-panel" style="padding: 2.5rem; background: rgba(0, 15, 30, 0.8); border: 1px solid rgba(0, 240, 255, 0.3);">
-                        <div style="color: var(--neon-cyan); font-family: 'Space Grotesk'; font-size: 1.2rem; margin-bottom: 2rem;">[ 介面與規則範例 ]</div>
+                    <!-- Retro 8-bit mockup -->
+                    <div style="background-color: #5c94fc; padding: 1.5rem; border: 4px solid #fff; box-shadow: 4px 4px 0px rgba(0,0,0,0.5); font-family: 'Press Start 2P', monospace; position: relative; transform: scale(0.85); transform-origin: top center;">
+                        <div style="color: #f8d820; font-size: 1.2rem; margin-bottom: 2rem; text-shadow: 2px 2px 0px #000; text-align: center;">[ 介面與規則範例 ]</div>
                         
-                        <div style="font-size: 1.5rem; color: var(--text-main); margin-bottom: 2rem;">
-                            Q: 冰島是世界上唯一沒有蚊子的國家嗎？
+                        <!-- HUD (Timer) -->
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; text-shadow: 2px 2px 0px #000; font-size: 0.8rem; color: #fff;">
+                            <div>SCORE: <span style="color: #f8d820">000000</span></div>
+                            <div>TIME: <span style="color: #ffcccc;">15</span></div>
+                        </div>
+
+                        <!-- Question Box -->
+                        <div style="background-color: #000000; border: 4px solid #ffffff; border-radius: 4px; padding: 1.5rem; min-height: 100px; margin-bottom: 1.5rem; position: relative; box-shadow: 4px 4px 0px rgba(0,0,0,0.5); color: #fff;">
+                            <div style="font-size: 1.2rem; line-height: 1.6;">
+                                冰島是世界上唯一沒有蚊子的國家嗎？
+                            </div>
+                            <div style="position: absolute; bottom: 5px; right: 10px; font-size: 0.8rem; color: #fff;">▼</div>
                         </div>
                         
-                        <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
-                            <div style="flex: 1; padding: 0.8rem; border: 1px solid var(--text-muted); color: var(--text-muted); border-radius: 4px; text-align: center; font-size: 1.2rem;">TRUE / 是</div>
-                            <div style="flex: 1; padding: 0.8rem; border: 1px solid var(--neon-cyan); color: #000; background: var(--neon-cyan); border-radius: 4px; text-align: center; font-size: 1.2rem; box-shadow: 0 0 15px var(--neon-cyan);">FALSE / 否</div>
+                        <!-- True / False -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div style="background-color: #c84c0c; border: 4px solid #000; box-shadow: inset -4px -4px 0px rgba(0,0,0,0.3), inset 4px 4px 0px rgba(255,255,255,0.3), 4px 4px 0px rgba(0,0,0,0.5); color: #fff; padding: 1rem; font-size: 1.2rem; text-align: center; text-shadow: 2px 2px 0px #000; display: flex; justify-content: center; align-items: center;">TRUE</div>
+                            <div style="background-color: #fca044; border: 4px solid #000; box-shadow: inset -4px -4px 0px rgba(0,0,0,0.3), inset 4px 4px 0px rgba(255,255,255,0.3); color: #fff; padding: 1rem; font-size: 1.2rem; text-align: center; text-shadow: 2px 2px 0px #000; transform: translate(4px, 4px); display: flex; justify-content: center; align-items: center;">FALSE</div>
                         </div>
                         
-                        <div style="display: flex; justify-content: space-between; gap: 0.5rem;">
-                            <div style="flex: 1; padding: 0.8rem 0; border: 1px solid var(--text-muted); color: var(--text-muted); text-align: center;">55%</div>
-                            <div style="flex: 1; padding: 0.8rem 0; border: 1px solid var(--text-muted); color: var(--text-muted); text-align: center;">65%</div>
-                            <div style="flex: 1; padding: 0.8rem 0; border: 1px solid var(--neon-orange); color: #000; background: var(--neon-orange); box-shadow: 0 0 15px var(--neon-orange); text-align: center; font-weight: bold;">75%</div>
-                            <div style="flex: 1; padding: 0.8rem 0; border: 1px solid var(--text-muted); color: var(--text-muted); text-align: center;">85%</div>
-                            <div style="flex: 1; padding: 0.8rem 0; border: 1px solid var(--text-muted); color: var(--text-muted); text-align: center;">95%</div>
+                        <!-- Confidence -->
+                        <div style="background: rgba(0,0,0,0.4); padding: 1rem; border: 4px solid #000; border-radius: 4px; margin-bottom: 1.5rem;">
+                            <div style="font-size: 0.8rem; text-align: center; margin-bottom: 1rem; color: #f8d820; text-shadow: 2px 2px 0px #000;">CONFIDENCE LEVEL</div>
+                            <div style="display: flex; justify-content: space-between; gap: 5px;">
+                                <div style="flex: 1; background-color: #000; border: 2px solid #fff; color: #fff; padding: 10px 0; font-size: 0.8rem; display: flex; justify-content: center; align-items: center; text-align: center;">55%</div>
+                                <div style="flex: 1; background-color: #000; border: 2px solid #fff; color: #fff; padding: 10px 0; font-size: 0.8rem; display: flex; justify-content: center; align-items: center; text-align: center;">65%</div>
+                                <div style="flex: 1; background-color: #f8d820; border: 2px solid #000; color: #000; padding: 10px 0; font-size: 0.8rem; display: flex; justify-content: center; align-items: center; text-align: center;">75%</div>
+                                <div style="flex: 1; background-color: #000; border: 2px solid #fff; color: #fff; padding: 10px 0; font-size: 0.8rem; display: flex; justify-content: center; align-items: center; text-align: center;">85%</div>
+                                <div style="flex: 1; background-color: #000; border: 2px solid #fff; color: #fff; padding: 10px 0; font-size: 0.8rem; display: flex; justify-content: center; align-items: center; text-align: center;">95%</div>
+                            </div>
+                        </div>
+                        
+                        <!-- NEXT Button -->
+                        <div style="background-color: #80d010; border: 4px solid #000; box-shadow: inset -4px -4px 0px rgba(0,0,0,0.3), inset 4px 4px 0px rgba(255,255,255,0.3), 4px 4px 0px rgba(0,0,0,0.5); color: #fff; padding: 1rem; font-size: 1.2rem; width: 100%; text-align: center; text-shadow: 2px 2px 0px #000;">
+                            NEXT
                         </div>
                     </div>
 
@@ -137,7 +177,7 @@
                     <div class="glass-panel" style="padding: 2.5rem 3rem; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 1.2rem; border: 2px solid var(--neon-cyan); background: rgba(0, 243, 255, 0.05);">
                         <div style="color: var(--text-main); font-size: 1.2rem; letter-spacing: 2px; font-weight: bold;">[ SCAN TO START ]</div>
                         <div style="background: white; padding: 10px; width: 180px; height: 180px; margin: 0 auto; border-radius: 8px; display: flex; justify-content: center; align-items: center;">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://inhightw.github.io/game/brier_score/index.html?mode=mobile" width="160" height="160" alt="QR Code">
+                            <img id="qr-code-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Finhightw.github.io%2Fgame%2Fbrier_score%2Findex.html%3Fmode%3Dmobile%26round%3D1" width="160" height="160" alt="QR Code">
                         </div>
                         <div style="color: var(--neon-orange); font-size: 1.3rem; font-weight: bold; margin-top: 0.5rem;">請用手機掃描上方條碼</div>
                         <div style="font-size: 1rem; color: var(--text-muted);">完成測驗後，結果將自動傳送至主控台</div>
@@ -237,7 +277,7 @@
             <h2 style="font-size: 3rem;">團隊校準 <span class="accent-warn">統計分布</span></h2>
             <div style="display: flex; justify-content: center; margin-top: 2rem; height: 60vh;">
                 <div class="glass-panel dash-panel" style="max-width: 800px; width: 100%;">
-                    <h3 style="color: var(--neon-orange); text-align: center;">[ POPULATION ANALYSIS ]</h3>
+                    <h3 style="color: var(--neon-orange); text-align: center;"><span id="stats-round-title">[ POPULATION ANALYSIS : ROUND 1 ]</span></h3>
                     
                     <div id="stats-dashboard" style="margin-top: 2rem; display: none;">
                         <div style="display: flex; justify-content: space-around; margin-bottom: 2rem; font-family: 'JetBrains Mono'; text-align: center;">
@@ -330,7 +370,7 @@
                 </div>
                 
                 <!-- Submit -->
-                <button class="action-btn" id="next-question-btn" disabled>EXECUTE</button>
+                <button class="action-btn" id="next-question-btn" disabled>NEXT</button>
             </div>
             
             <div id="result-screen" class="result-screen" style="display: none; text-align: center;">
@@ -344,7 +384,7 @@
                 <div class="register-form" style="margin-top: 1rem; text-align: center; margin-bottom: 2rem;">
                     <div style="color: #80d010; margin-bottom: 1rem;" id="sync-status">>> SYNCING TO CLOUD...</div>
                 </div>
-                <button class="action-btn" id="close-quiz-btn" style="background-color: #c84c0c; opacity: 1; cursor: pointer;">EXIT MODULE</button>
+                <button class="action-btn" id="close-quiz-btn" style="background-color: #c84c0c; opacity: 1; cursor: pointer;">MISSION COMPLETED</button>
             </div>
         </div>
     </div>

@@ -125,6 +125,10 @@
         }
 
         .conf-btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
             flex: 1;
             background-color: #000;
             border: 2px solid #fff;
@@ -229,7 +233,7 @@
 
     <!-- Submit -->
     <div class="action-btn" id="submit-btn" onclick="submit()">
-        EXECUTE
+        NEXT
     </div>
 
     <script>
@@ -280,7 +284,7 @@
             // Fake animation
             btn.innerHTML = "BOOM!";
             setTimeout(() => {
-                btn.innerHTML = "EXECUTE";
+                btn.innerHTML = "NEXT";
                 document.querySelectorAll('.selected').forEach(b => b.classList.remove('selected'));
                 hasBinary = false;
                 hasConf = false;

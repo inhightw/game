@@ -1,4 +1,4 @@
-const GAS_URL = "https://script.google.com/macros/s/AKfycbx-HVt-CW9QQ7GqNNAY23YH8SoBtKxckU7vQQ3H0Z88M_ZPXRy6pwIpmg8kqltTVnzTxA/exec"; // TODO: 填入您部署的 GAS 網址
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwUF-etSD8FWmSwmSfGm6nZwFI8-g32MbRlhG_A1nnEkE7m1n1AKn5HK4vR7jyX4e236g/exec"; // TODO: 填入您部署的 GAS 網址
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- Scale to 16:9 1280x720 ---
@@ -15,6 +15,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const urlParams = new URLSearchParams(window.location.search);
     const isMobileMode = urlParams.get('mode') === 'mobile';
+    
+    // --- Round Control Logic ---
+    let currentRound = "1";
+    const roundSelector = document.getElementById('round-selector');
+    const statsRoundTitle = document.getElementById('stats-round-title');
+    
+    if (roundSelector) {
+        roundSelector.addEventListener('change', (e) => {
+            currentRound = e.target.value;
+            
+            // Update QR Code
+            const qrImg = document.getElementById('qr-code-img');
+            if (qrImg) {
+                let roundParam = currentRound === "all" ? "1" : currentRound; // if all, default mobile to 1
+                let qrUrl = "https://inhightw.github.io/game/brier_score/index.html?mode=mobile&round=" + roundParam;
+                qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(qrUrl);
+            }
+            
+            // Update Stats Title
+            if (statsRoundTitle) {
+                statsRoundTitle.innerText = currentRound === "all" ? "[ POPULATION ANALYSIS : 累積總計 ]" : `[ POPULATION ANALYSIS : ROUND ${currentRound} ]`;
+            }
+            
+            // Fetch stats immediately
+            fetchStats();
+        });
+    }
+
 
     // --- Cover Title Typing Animation ---
     const part1 = "5分鐘";
@@ -58,6 +86,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 s.classList.remove('active');
             }
         });
+        
+        const roundPanel = document.getElementById('round-control-panel');
+        if (roundPanel) {
+            const activeId = slides[currentSlide].id;
+            if (activeId === 'slide-3' || activeId === 'slide-6') {
+                roundPanel.style.display = 'flex';
+            } else {
+                roundPanel.style.display = 'none';
+            }
+        }
         btnPrev.style.opacity = currentSlide === 0 ? '0.3' : '1';
         btnPrev.style.pointerEvents = currentSlide === 0 ? 'none' : 'auto';
         
@@ -133,6 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initQuiz() {
+        const hud = document.querySelector('.hud');
+        if (hud) hud.style.display = 'flex';
         let shuffled = [...QUESTIONS].sort(() => 0.5 - Math.random());
         quizQuestions = shuffled.slice(0, 10);
         currentQIndex = 0;
@@ -268,7 +308,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function finishQuiz() {
         qScreen.style.display = 'none';
-        rScreen.classList.add('active');
+        rScreen.style.display = 'block';
+        const hud = document.querySelector('.hud');
+        if (hud) hud.style.display = 'none';
         
         let sumSquaredErrors = 0;
         let sumConf = 0;
@@ -286,8 +328,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const accuracy = correctCount / userAnswers.length;
         
         let biasType = "perfect";
-        if (avgConf > accuracy + 0.05) biasType = "blind";
-        else if (avgConf < accuracy - 0.05) biasType = "conservative";
+        if (avgConf > accuracy + 0.15) biasType = "blind";
+        else if (avgConf < accuracy - 0.15) biasType = "conservative";
         window.currentBiasType = biasType;
         
         // Number animation
@@ -309,10 +351,18 @@ document.addEventListener('DOMContentLoaded', () => {
             finalScoreEl.innerText = currentDisplay.toFixed(4);
         }, stepTime);
         
-        if (brierScore < 0.1) scoreFeedback.innerText = ">> CALIBRATION: PERFECT. Superforecaster potential detected.";
-        else if (brierScore < 0.2) scoreFeedback.innerText = ">> CALIBRATION: EXCELLENT. High alignment with reality.";
-        else if (brierScore < 0.3) scoreFeedback.innerText = ">> CALIBRATION: ACCEPTABLE. Minor overconfidence/conservatism detected.";
-        else scoreFeedback.innerText = ">> CALIBRATION: POOR. Severe noise detected. Recalibration recommended.";
+        let feedbackHTML = "";
+        if (biasType === "blind") {
+            feedbackHTML = '<div style="color: #FF4757; font-size: 2rem; margin-bottom: 1rem; font-family: \'Press Start 2P\', sans-serif;">💥 盲目自信</div>' +
+                           '<div style="color: #fff; line-height: 1.8; font-family: \'Space Grotesk\', sans-serif;">衝動是魔鬼！彈弓拉太滿卻連連脫靶。<br>認清自己的「不知道」才是真智慧。<div style="background: rgba(0,0,0,0.6); padding: 1rem; border: 2px dashed #f8d820; border-radius: 8px; margin-top: 1.5rem; text-align: left; font-size: 0.95rem; line-height: 1.6;"><span style="color: #f8d820;">💡 [ 升級攻略 ]</span><br><span style="color: #fff;">扣扳機前別急著 All-in！既然瞄準鏡可能有死角，就別輕易押上 95% 的信心籌碼。下次決策時，請強制把直覺的信心指數「打個八折」，給自己留點容錯空間，才是資深玩家的策略。</span></div></div>';
+        } else if (biasType === "conservative") {
+            feedbackHTML = '<div style="color: #2ED573; font-size: 2rem; margin-bottom: 1rem; font-family: \'Press Start 2P\', sans-serif;">🐢 保守避險</div>' +
+                           '<div style="color: #fff; line-height: 1.8; font-family: \'Space Grotesk\', sans-serif;">你比想像中還要強！明明看準了卻不敢用力。<br>下次決策請勇敢相信自己的判斷！<div style="background: rgba(0,0,0,0.6); padding: 1rem; border: 2px dashed #f8d820; border-radius: 8px; margin-top: 1.5rem; text-align: left; font-size: 0.95rem; line-height: 1.6;"><span style="color: #f8d820;">💡 [ 升級攻略 ]</span><br><span style="color: #fff;">你的帳面實力遠大於你的下注膽量！把「過度保守」的封印解除吧。下次遇到熟悉的領域，請勇敢把信心指數往上調 10%，你的判斷力值得更高的報酬！</span></div></div>';
+        } else {
+            feedbackHTML = '<div style="color: #FFA502; font-size: 2rem; margin-bottom: 1rem; font-family: \'Press Start 2P\', sans-serif;">🎯 完美校準</div>' +
+                           '<div style="color: #fff; line-height: 1.8; font-family: \'Space Grotesk\', sans-serif;">心智宛如八倍鏡狙擊槍！不誇大也不退縮，<br>沒有偏誤能騙倒你這個決策神射手！<div style="background: rgba(0,0,0,0.6); padding: 1rem; border: 2px dashed #f8d820; border-radius: 8px; margin-top: 1.5rem; text-align: left; font-size: 0.95rem; line-height: 1.6;"><span style="color: #f8d820;">💡 [ 升級攻略 ]</span><br><span style="color: #fff;">你完美區分了「已知」與「未知」！請將這套校準能力系統化，成為團隊在面對高風險、高不確定性的決策時，最可靠的定海神針。</span></div></div>';
+        }
+        scoreFeedback.innerHTML = feedbackHTML;
         
         window.currentBrierScore = brierScore;
         
@@ -325,6 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 sessionID: anonId,
                 brierScore: brierScore,
                 biasType: biasType,
+                round: urlParams.get("round") || "1",
                 responses: userAnswers.map(ans => ({
                     id: ans.id,
                     conf: ans.statedConfidence,
@@ -393,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const loadingEl = document.getElementById('stats-loading');
         const dashEl = document.getElementById('stats-dashboard');
         
-        fetch(GAS_URL + "?action=getStats")
+        fetch(GAS_URL + "?action=getStats&round=" + currentRound)
             .then(res => res.json())
             .then(data => {
                 if (data.total === 0) {
