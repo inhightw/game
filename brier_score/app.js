@@ -45,8 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Cover Title Typing Animation ---
-    const part1 = "5分鐘";
-    const part2 = "主觀機率校準訓練";
+    const part1 = "你確定你確定？";
+    const part2 = "How Sure Are You?";
     let typeI = 0;
     let typeJ = 0;
     const title1El = document.getElementById('cover-title-1');
@@ -54,15 +54,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function typeTitle() {
         if (!title1El || !title2El) return;
-        if (typeI < part1.length) {
-            title1El.innerHTML += part1.charAt(typeI);
-            typeI++;
-            setTimeout(typeTitle, 150); // Typing speed
-        } else if (typeJ < part2.length) {
-            title2El.innerHTML += part2.charAt(typeJ);
-            typeJ++;
-            setTimeout(typeTitle, 150); // Typing speed
+        
+        const duration = 1200; // 1.2秒總時間
+        const startTime = Date.now();
+        
+        function update() {
+            const now = Date.now();
+            const progress = Math.min((now - startTime) / duration, 1);
+            
+            const len1 = Math.floor(progress * part1.length);
+            const len2 = Math.floor(progress * part2.length);
+            
+            title1El.innerHTML = part1.substring(0, len1);
+            title2El.innerHTML = part2.substring(0, len2);
+            
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            }
         }
+        
+        requestAnimationFrame(update);
     }
     
     // Start typing animation on load if not mobile
@@ -470,18 +481,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const pieCtx = document.getElementById('biasPieChart');
                 if (!histCtx || !pieCtx) return;
 
-                Chart.defaults.color = '#8A9BA8';
+                Chart.defaults.color = '#1A202C';
                 Chart.defaults.font.family = "'Space Grotesk', sans-serif";
                 
                 // 1. Prepare Histogram Data
-                const bins = [0, 0, 0, 0, 0]; // <0.1, 0.1-0.2, 0.2-0.3, 0.3-0.4, >0.4
+                const bins = [0, 0, 0]; // 3 bins: 優秀/正常/極端
                 if (data.scores) {
                     data.scores.forEach(s => {
-                        if (s < 0.1) bins[0]++;
-                        else if (s < 0.2) bins[1]++;
-                        else if (s < 0.3) bins[2]++;
-                        else if (s < 0.4) bins[3]++;
-                        else bins[4]++;
+                        if (s <= 0.15) bins[0]++;
+                        else if (s <= 0.25) bins[1]++;
+                        else bins[2]++;
                     });
                 }
                 
@@ -492,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     histChart = new Chart(histCtx.getContext('2d'), {
                         type: 'bar',
                         data: {
-                            labels: ['0~0.1', '0.1~0.2', '0.2~0.3', '0.3~0.4', '>0.4'],
+                            labels: ['0.00~0.15 優秀', '0.15~0.25 正常', '>0.25 極端'],
                             datasets: [{
                                 label: '人數',
                                 data: bins,
@@ -506,8 +515,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             responsive: true,
                             maintainAspectRatio: false,
                             scales: {
-                                y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } },
-                                x: { grid: { display: false } }
+                                y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0, color: '#1A202C' } },
+                                x: { grid: { display: false }, ticks: { color: '#1A202C' } }
                             },
                             plugins: { legend: { display: false } }
                         }
@@ -543,7 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             plugins: {
                                 legend: {
                                     position: 'bottom',
-                                    labels: { padding: 20, usePointStyle: true }
+                                    labels: { padding: 20, usePointStyle: true, color: '#1A202C' }
                                 }
                             }
                         }
