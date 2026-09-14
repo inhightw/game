@@ -1,0 +1,576 @@
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwUF-etSD8FWmSwmSfGm6nZwFI8-g32MbRlhG_A1nnEkE7m1n1AKn5HK4vR7jyX4e236g/exec"; // TODO: 填入您部署的 GAS 網址
+
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Scale to 16:9 1280x720 ---
+    function resizePresentation() {
+        const container = document.querySelector('.presentation-container');
+        if (!container) return;
+        const scaleX = window.innerWidth / 1280;
+        const scaleY = window.innerHeight / 720;
+        const scale = Math.min(scaleX, scaleY);
+        container.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    }
+    window.addEventListener('resize', resizePresentation);
+    resizePresentation();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const isMobileMode = urlParams.get('mode') === 'mobile';
+    
+    // --- Round Control Logic ---
+    let currentRound = "1";
+    const roundSelector = document.getElementById('round-selector');
+    const statsRoundTitle = document.getElementById('stats-round-title');
+    
+    if (roundSelector) {
+        roundSelector.addEventListener('change', (e) => {
+            currentRound = e.target.value;
+            
+            // Update QR Code
+            const qrImg = document.getElementById('qr-code-img');
+            if (qrImg) {
+                let roundParam = currentRound === "all" ? "1" : currentRound; // if all, default mobile to 1
+                let qrUrl = "https://inhightw.github.io/game/brier_score/index.html?mode=mobile&round=" + roundParam;
+                qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(qrUrl);
+            }
+            
+            // Update Stats Title
+            if (statsRoundTitle) {
+                statsRoundTitle.innerText = currentRound === "all" ? "[ POPULATION ANALYSIS : 累積總計 ]" : `[ POPULATION ANALYSIS : ROUND ${currentRound} ]`;
+            }
+            
+            // Fetch stats immediately
+            fetchStats();
+        });
+    }
+
+
+    // --- Cover Title Typing Animation ---
+    const part1 = "你確定你確定？";
+    const part2 = "How Sure Are You?";
+    let typeI = 0;
+    let typeJ = 0;
+    const title1El = document.getElementById('cover-title-1');
+    const title2El = document.getElementById('cover-title-2');
+
+    function typeTitle() {
+        if (!title1El || !title2El) return;
+        
+        const duration = 1200; // 1.2秒總時間
+        const startTime = Date.now();
+        
+        function update() {
+            const now = Date.now();
+            const progress = Math.min((now - startTime) / duration, 1);
+            
+            const len1 = Math.floor(progress * part1.length);
+            const len2 = Math.floor(progress * part2.length);
+            
+            title1El.innerHTML = part1.substring(0, len1);
+            title2El.innerHTML = part2.substring(0, len2) + (progress < 1 ? '<span style=\"animation: blink 0.5s infinite\">█</span>' : '');
+            
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            }
+        }
+        
+        requestAnimationFrame(update);
+    }
+    
+    // Start typing animation on load if not mobile
+    if (!isMobileMode) {
+        setTimeout(typeTitle, 500);
+    }
+
+    // --- Slide Navigation Logic ---
+    const slides = document.querySelectorAll('.slide');
+    let currentSlide = 0;
+    const maxSlide = slides.length - 1;
+
+    const btnPrev = document.getElementById('prev-slide');
+    const btnNext = document.getElementById('next-slide');
+
+    function updateSlides() {
+        slides.forEach((s, i) => {
+            if (i === currentSlide) {
+                s.classList.add('active');
+            } else {
+                s.classList.remove('active');
+            }
+        });
+        
+        const roundPanel = document.getElementById('round-control-panel');
+        if (roundPanel) {
+            const activeId = slides[currentSlide].id;
+            if (activeId === 'slide-3' || activeId === 'slide-6') {
+                roundPanel.style.display = 'flex';
+            } else {
+                roundPanel.style.display = 'none';
+            }
+        }
+        btnPrev.style.opacity = currentSlide === 0 ? '0.3' : '1';
+        btnPrev.style.pointerEvents = currentSlide === 0 ? 'none' : 'auto';
+        
+        btnNext.style.opacity = currentSlide === maxSlide ? '0.3' : '1';
+        btnNext.style.pointerEvents = currentSlide === maxSlide ? 'none' : 'auto';
+    }
+
+    btnPrev.addEventListener('click', () => {
+        if (currentSlide > 0) {
+            currentSlide--;
+            updateSlides();
+        }
+    });
+
+    btnNext.addEventListener('click', () => {
+        if (currentSlide < maxSlide) {
+            currentSlide++;
+            updateSlides();
+        }
+    });
+    
+    document.addEventListener('keydown', (e) => {
+        if (document.getElementById('quiz-overlay').classList.contains('active')) return;
+        if (e.key === 'ArrowRight' || e.key === 'Space') {
+            if (currentSlide < maxSlide) { currentSlide++; updateSlides(); }
+        } else if (e.key === 'ArrowLeft') {
+            if (currentSlide > 0) { currentSlide--; updateSlides(); }
+        }
+    });
+
+    updateSlides();
+
+    // --- Quiz Engine Logic ---
+    let quizQuestions = [];
+    let currentQIndex = 0;
+    let userAnswers = []; 
+    
+    let selectedBoolean = null; 
+    let selectedConfidence = null; 
+
+    // Timer State
+    let questionTimer = null;
+    const TIME_LIMIT = 15; // seconds per question 
+
+    const quizOverlay = document.getElementById('quiz-overlay');
+    const startBtn = document.getElementById('start-quiz-btn');
+    const closeBtn = document.getElementById('close-quiz-btn');
+    
+    const qTypeContent = document.getElementById('q-type-content');
+    const progressText = document.getElementById('quiz-progress');
+    const btnTrue = document.getElementById('btn-true');
+    const btnFalse = document.getElementById('btn-false');
+    const confSection = document.getElementById('conf-section');
+    const scaleBtns = document.querySelectorAll('.conf-btn');
+    const nextQBtn = document.getElementById('next-question-btn');
+    
+    const qScreen = document.getElementById('question-screen');
+    const rScreen = document.getElementById('result-screen');
+    
+    const finalScoreEl = document.getElementById('final-brier-score');
+    const scoreFeedback = document.getElementById('score-feedback');
+    const syncStatus = document.getElementById('sync-status');
+
+    let typeWriterTimer = null;
+
+    function typeWriter(text, index, cb) {
+        if (index < text.length) {
+            qTypeContent.innerHTML += text.charAt(index);
+            typeWriterTimer = setTimeout(() => typeWriter(text, index + 1, cb), 80);
+        } else {
+            if (cb) cb();
+        }
+    }
+
+    function initQuiz() {
+        const hud = document.querySelector('.hud');
+        if (hud) hud.style.display = 'flex';
+        let shuffled = [...QUESTIONS].sort(() => 0.5 - Math.random());
+        quizQuestions = shuffled.slice(0, 10);
+        currentQIndex = 0;
+        userAnswers = [];
+        
+        qScreen.style.display = 'block';
+        rScreen.classList.remove('active');
+        
+        showQuestion();
+    }
+
+    function showQuestion() {
+        selectedBoolean = null;
+        selectedConfidence = null;
+        
+        btnTrue.classList.remove('selected');
+        btnFalse.classList.remove('selected');
+        scaleBtns.forEach(b => b.classList.remove('selected'));
+        confSection.classList.remove('visible');
+        nextQBtn.disabled = true;
+
+        progressText.innerText = `Q ${String(currentQIndex + 1).padStart(2, '0')} / 10`;
+        
+        qTypeContent.innerHTML = '';
+        if (typeWriterTimer) clearTimeout(typeWriterTimer);
+        
+        // Start timer
+        startTimer();
+
+        // Typing effect for the question
+        const qText = `${quizQuestions[currentQIndex].text}`;
+        typeWriter(qText, 0);
+    }
+
+    function startTimer() {
+        if (questionTimer) clearInterval(questionTimer);
+        let timeLeft = TIME_LIMIT;
+        
+        const timerDisplay = document.getElementById('timer-display');
+        const timerBar = document.getElementById('timer-bar');
+        
+        timerDisplay.textContent = `00:${timeLeft.toString().padStart(2, '0')}`;
+        timerDisplay.style.color = 'var(--neon-orange)';
+        
+        timerBar.style.transition = 'none';
+        timerBar.style.width = '100%';
+        timerBar.style.background = 'var(--neon-orange)';
+        
+        void timerBar.offsetWidth;
+        
+        timerBar.style.transition = `width ${TIME_LIMIT}s linear`;
+        timerBar.style.width = '0%';
+        
+        questionTimer = setInterval(() => {
+            timeLeft--;
+            if (timeLeft >= 0) {
+                timerDisplay.textContent = `00:${timeLeft.toString().padStart(2, '0')}`;
+                if (timeLeft <= 3) {
+                    timerDisplay.style.color = '#FF0000';
+                    timerBar.style.background = '#FF0000';
+                }
+            }
+            if (timeLeft <= 0) {
+                clearInterval(questionTimer);
+                handleTimeOut();
+            }
+        }, 1000);
+    }
+    
+    function handleTimeOut() {
+        document.getElementById('timer-display').textContent = "TIMEOUT";
+        currentQIndex++;
+        if (currentQIndex < quizQuestions.length) {
+            setTimeout(showQuestion, 1000);
+        } else {
+            setTimeout(finishQuiz, 1000);
+        }
+    }
+
+    function checkReady() {
+        if (selectedBoolean !== null && selectedConfidence !== null) {
+            nextQBtn.disabled = false;
+        }
+    }
+
+    btnTrue.addEventListener('click', () => {
+        selectedBoolean = true;
+        btnTrue.classList.add('selected');
+        btnFalse.classList.remove('selected');
+        confSection.classList.add('visible');
+        checkReady();
+    });
+
+    btnFalse.addEventListener('click', () => {
+        selectedBoolean = false;
+        btnFalse.classList.add('selected');
+        btnTrue.classList.remove('selected');
+        confSection.classList.add('visible');
+        checkReady();
+    });
+
+    scaleBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            selectedConfidence = parseFloat(e.target.getAttribute('data-conf'));
+            scaleBtns.forEach(b => b.classList.remove('selected'));
+            e.target.classList.add('selected');
+            checkReady();
+        });
+    });
+
+    nextQBtn.addEventListener('click', () => {
+        if (questionTimer) clearInterval(questionTimer);
+        const actualAnswer = quizQuestions[currentQIndex].answer;
+        const outcome = actualAnswer ? 1 : 0;
+        const pTrue = selectedBoolean ? selectedConfidence : (1 - selectedConfidence);
+        const isCorrect = (selectedBoolean === actualAnswer);
+        
+        userAnswers.push({ 
+            id: quizQuestions[currentQIndex].id,
+            pTrue: pTrue, 
+            outcome: outcome,
+            statedConfidence: selectedConfidence,
+            isCorrect: isCorrect
+        });
+
+        currentQIndex++;
+        if (currentQIndex < quizQuestions.length) {
+            showQuestion();
+        } else {
+            finishQuiz();
+        }
+    });
+
+    function finishQuiz() {
+        qScreen.style.display = 'none';
+        rScreen.style.display = 'block';
+        const hud = document.querySelector('.hud');
+        if (hud) hud.style.display = 'none';
+        
+        let sumSquaredErrors = 0;
+        let sumConf = 0;
+        let correctCount = 0;
+        
+        userAnswers.forEach(ans => {
+            const err = ans.pTrue - ans.outcome;
+            sumSquaredErrors += err * err;
+            sumConf += ans.statedConfidence;
+            if (ans.isCorrect) correctCount++;
+        });
+        
+        const brierScore = sumSquaredErrors / userAnswers.length;
+        const avgConf = sumConf / userAnswers.length;
+        const accuracy = correctCount / userAnswers.length;
+        
+        let biasType = "perfect";
+        if (brierScore > 0.25) {
+            biasType = "blind"; // 第一關：大於 0.25 直接判定盲目自信
+        } else {
+            // 第二關：小於等於 0.25 才細分
+            if (avgConf > accuracy + 0.15) biasType = "blind";
+            else if (avgConf < accuracy - 0.15) biasType = "conservative";
+        }
+        window.currentBiasType = biasType;
+        
+        // Number animation
+        let currentDisplay = 0;
+        const targetDisplay = brierScore;
+        const duration = 1000;
+        const stepTime = 20;
+        const steps = duration / stepTime;
+        const increment = targetDisplay / steps;
+        
+        let count = 0;
+        const timer = setInterval(() => {
+            count++;
+            currentDisplay += increment;
+            if (count >= steps) {
+                clearInterval(timer);
+                currentDisplay = targetDisplay;
+            }
+            finalScoreEl.innerText = currentDisplay.toFixed(4);
+        }, stepTime);
+        
+        let feedbackHTML = "";
+        if (biasType === "blind") {
+            feedbackHTML = '<div style="color: #FF4757; font-size: 2rem; margin-bottom: 1rem; font-family: \'Press Start 2P\', sans-serif;">💥 盲目自信</div>' +
+                           '<div style="color: #fff; line-height: 1.8; font-family: \'Space Grotesk\', sans-serif;">衝動是魔鬼！彈弓拉太滿卻連連脫靶。<br>認清自己的「不知道」才是真智慧。<div style="background: rgba(0,0,0,0.6); padding: 1rem; border: 2px dashed #f8d820; border-radius: 8px; margin-top: 1.5rem; text-align: left; font-size: 0.95rem; line-height: 1.6;"><span style="color: #f8d820;">💡 [ 升級攻略 ]</span><br><span style="color: #fff;">扣扳機前別急著 All-in！既然瞄準鏡可能有死角，就別輕易押上 95% 的信心籌碼。下次決策時，請強制把直覺的信心指數「打個八折」，給自己留點容錯空間，才是資深玩家的策略。</span></div></div>';
+        } else if (biasType === "conservative") {
+            feedbackHTML = '<div style="color: #2ED573; font-size: 2rem; margin-bottom: 1rem; font-family: \'Press Start 2P\', sans-serif;">🐢 保守避險</div>' +
+                           '<div style="color: #fff; line-height: 1.8; font-family: \'Space Grotesk\', sans-serif;">你比想像中還要強！明明看準了卻不敢用力。<br>下次決策請勇敢相信自己的判斷！<div style="background: rgba(0,0,0,0.6); padding: 1rem; border: 2px dashed #f8d820; border-radius: 8px; margin-top: 1.5rem; text-align: left; font-size: 0.95rem; line-height: 1.6;"><span style="color: #f8d820;">💡 [ 升級攻略 ]</span><br><span style="color: #fff;">你的帳面實力遠大於你的下注膽量！把「過度保守」的封印解除吧。下次遇到熟悉的領域，請勇敢把信心指數往上調 10%，你的判斷力值得更高的報酬！</span></div></div>';
+        } else {
+            feedbackHTML = '<div style="color: #FFA502; font-size: 2rem; margin-bottom: 1rem; font-family: \'Press Start 2P\', sans-serif;">🎯 完美校準</div>' +
+                           '<div style="color: #fff; line-height: 1.8; font-family: \'Space Grotesk\', sans-serif;">心智宛如八倍鏡狙擊槍！不誇大也不退縮，<br>沒有偏誤能騙倒你這個決策神射手！<div style="background: rgba(0,0,0,0.6); padding: 1rem; border: 2px dashed #f8d820; border-radius: 8px; margin-top: 1.5rem; text-align: left; font-size: 0.95rem; line-height: 1.6;"><span style="color: #f8d820;">💡 [ 升級攻略 ]</span><br><span style="color: #fff;">你完美區分了「已知」與「未知」！請將這套校準能力系統化，成為團隊在面對高風險、高不確定性的決策時，最可靠的定海神針。</span></div></div>';
+        }
+        scoreFeedback.innerHTML = feedbackHTML;
+        
+        window.currentBrierScore = brierScore;
+        
+        // Actual GAS Sync Logic
+        syncStatus.innerText = ">> SYNCING TO CLOUD...";
+        const anonId = "anon-" + Math.random().toString(36).substring(2, 8);
+        
+        if (GAS_URL && !GAS_URL.includes("YOUR_GOOGLE_APPS_SCRIPT")) {
+            const payload = {
+                sessionID: anonId,
+                brierScore: brierScore,
+                biasType: biasType,
+                round: urlParams.get("round") || "1",
+                responses: userAnswers.map(ans => ({
+                    id: ans.id,
+                    conf: ans.statedConfidence,
+                    correct: ans.isCorrect
+                }))
+            };
+            
+            fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(data => {
+                syncStatus.innerText = `>> DATA SYNCED [ ${anonId} ]`;
+                syncStatus.style.color = "#00FF00";
+            })
+            .catch(err => {
+                console.error(err);
+                syncStatus.innerText = `>> SYNC ERROR [ ${anonId} ]`;
+                syncStatus.style.color = "#FF0000";
+            });
+        } else {
+            // Simulated for local testing without GAS URL
+            setTimeout(() => {
+                syncStatus.innerText = `>> DATA SYNCED [ ${anonId} ] (Local Mock)`;
+                syncStatus.style.color = "#00FF00";
+            }, 1500);
+        }
+    }
+
+    startBtn.addEventListener('click', () => {
+        quizOverlay.classList.add('active');
+        initQuiz();
+    });
+
+    const mobileStartScreen = document.getElementById('mobile-start-screen');
+    const mobileStartBtn = document.getElementById('btn-start-quiz');
+
+    if (isMobileMode) {
+        document.querySelector('.presentation-container').style.display = 'none';
+        document.getElementById('close-quiz-btn').style.display = 'none';
+        mobileStartScreen.style.display = 'flex';
+        
+        mobileStartBtn.addEventListener('click', () => {
+            mobileStartScreen.style.display = 'none';
+            quizOverlay.classList.add('active');
+            initQuiz();
+        });
+    }
+
+    closeBtn.addEventListener('click', () => {
+        quizOverlay.classList.remove('active');
+        if (currentSlide === 4) {
+            currentSlide++;
+            updateSlides();
+        }
+    });
+
+    // --- Leaderboard/Stats Integration (Google Sheets) ---
+    let histChart = null;
+    let pieChart = null;
+
+    function fetchStats() {
+        if (!GAS_URL || GAS_URL.includes("YOUR_GOOGLE_APPS_SCRIPT")) return;
+        
+        const loadingEl = document.getElementById('stats-loading');
+        const dashEl = document.getElementById('stats-dashboard');
+        
+        fetch(GAS_URL + "?action=getStats&round=" + currentRound)
+            .then(res => res.json())
+            .then(data => {
+                if (data.total === 0) {
+                    loadingEl.innerText = "NO DATA YET";
+                    return;
+                }
+                
+                loadingEl.style.display = 'none';
+                dashEl.style.display = 'block';
+                
+                document.getElementById('stat-total').innerText = data.total;
+                document.getElementById('stat-avg').innerText = data.average.toFixed(4);
+                
+                // Draw Charts
+                if (typeof Chart === 'undefined') return; // Wait for Chart.js to load
+                
+                const histCtx = document.getElementById('scoreHistogram');
+                const pieCtx = document.getElementById('biasPieChart');
+                if (!histCtx || !pieCtx) return;
+
+                Chart.defaults.color = '#1A202C';
+                Chart.defaults.font.family = "'Space Grotesk', sans-serif";
+                
+                // 1. Prepare Histogram Data
+                const bins = [0, 0, 0];
+                if (data.scores) {
+                    data.scores.forEach(s => {
+                        if (s <= 0.15) bins[0]++;
+                        else if (s <= 0.25) bins[1]++;
+                        else bins[2]++;
+                    });
+                }
+                
+                if (histChart) {
+                    histChart.data.datasets[0].data = bins;
+                    histChart.update();
+                } else {
+                    histChart = new Chart(histCtx.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: ['0.00 ~ 0.15 優秀', '0.15 ~ 0.25 正常', '> 0.25 極端'],
+                            datasets: [{
+                                label: '人數',
+                                data: bins,
+                                backgroundColor: 'rgba(0, 255, 255, 0.6)',
+                                borderColor: 'rgba(0, 255, 255, 1)',
+                                borderWidth: 1,
+                                borderRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0, color: '#1A202C' } },
+                                x: { grid: { display: false }, ticks: { color: '#1A202C' } }
+                            },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+
+                // 2. Prepare Pie Data
+                const pieData = [
+                    data.counts.perfect || 0,
+                    data.counts.blind || 0,
+                    data.counts.conservative || 0
+                ];
+                
+                if (pieChart) {
+                    pieChart.data.datasets[0].data = pieData;
+                    pieChart.update();
+                } else {
+                    pieChart = new Chart(pieCtx.getContext('2d'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['完美校準', '盲目自信', '保守避險'],
+                            datasets: [{
+                                data: pieData,
+                                backgroundColor: ['#00FF00', '#FF4500', '#4A90E2'],
+                                borderWidth: 0,
+                                hoverOffset: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '65%',
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: { padding: 20, usePointStyle: true, color: '#1A202C' }
+                                }
+                            }
+                        }
+                    });
+                }
+            })
+            .catch(err => {
+                console.error("Failed to fetch stats:", err);
+                loadingEl.innerText = "ERROR LOADING DATA";
+            });
+    }
+
+    // Refresh stats every 5 seconds
+    setInterval(() => {
+        // Only fetch if slide 6 (stats) is active
+        const slide6 = document.getElementById('slide-6');
+        if (slide6 && slide6.classList.contains('active')) {
+            fetchStats();
+        }
+    }, 5000);
+});
